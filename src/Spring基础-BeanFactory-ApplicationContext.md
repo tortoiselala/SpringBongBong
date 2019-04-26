@@ -115,7 +115,75 @@ ApplicationContext ctxClassPath2 =
 
 同时这两种方法都可以显示使用带资源类型前缀的路径，区别在于如果不显示指定资源前缀将分别默认解析为classpath和file。
 
-在获取`ApplicationContext`后，就可以像`BeanFactory`一样调用`getBean(beanName)`返回Bean了。`ApplicationContext`的初始化和`BeanFactory`有一个重大区别就是：`BeanFactory`在初始化容器时，并未实例化
+在获取`ApplicationContext`后，就可以像`BeanFactory`一样调用`getBean(beanName)`返回Bean了。`ApplicationContext`的初始化和`BeanFactory`有一个重大区别就是：
+
+- `BeanFactory`在初始化容器时，并未实例化Bean，直到第一次某个Bean被访问时才实例化目标Bean；
+- `ApplicationContext`的在初始化应用上下文时就实例化所有单实例Bean。
+
+### 使用注解配置Bean
+
+`@Configuration`注解标明该类为一个配置类
+
+`@Bean`注解指示了从该方法可以获取到Bean
+
+```java
+@Configuration
+public class Beans{
+    
+    @Bean(name = "instance")
+    public Instance createInstance(){
+        return new Instance();
+    }
+}
+```
+
+同时Spring为基于注解类的配置提供了专门的`ApplicationContext`实现类：`AnnotationConfigApplicationCOntext`。下面是一个简单的示例：
+
+```java
+public class AnnotationConfigApplicationContextTest{
+    
+    @Test
+    public void createInstance(){
+        ApplicationContext ctxAnnotationConfig = 
+        	new AnnotationConfigApplicationContext(Beans.class);
+        	Instance instance = ctxAnnotationConfig.createInstance();
+    }
+}
+```
+
+### 使用Groovy配置Bean
+
+Spring4.0 支持使用Groovy DSL来进行Bean定义配置。这种配置方式与XML文件的配置类似，只不过基于Groovy脚本语言，可以实现复杂、灵活的Bean配置逻辑，如下是一个例子：
+
+```java
+// groovy-beans.groovy
+import com.bag.Instance;
+beans{
+    instance(Instance){
+        name = "";
+        properties = "";
+        // ..
+    }
+}
+```
+
+同样，Spring为基于Groovy的配置提供了专门的`ApplicationContext`实现类：`GenericCrovvyApplicationContext`，如下是一个简单示例：
+
+```java
+public class GenericGrovvyApplicationContextTest{
+    @Test
+    public void createInstance(){
+        ApplicationContext ctxGroovy =
+            new GenericGroovyApplicationContext(
+            	"classpath: groovy-beans.groovy");
+        Instance instance = (Instance)ctxGroovy.createInstance("car");
+    }
+}
+```
+
+
+
+## WebApplicationContext简介
 
 
 
