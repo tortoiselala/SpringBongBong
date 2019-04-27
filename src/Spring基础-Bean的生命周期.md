@@ -87,6 +87,63 @@ Spring提供了一系列的`*Aware`接口使得Bean能够告诉容器其所需�
 | `ServletConfigAware`             | void `setServletConfig` (ServletConfig servletConfig);       | Set the ServletConfig that this object runs in.              |
 | `ServletContextAware`            | void `setServletContext` (ServletContext servletContext);    | Set the ServletContext that this object runs in.             |
 
+下面是一个简单示例：
+
+```java
+Wpublic class DemoBean implements ApplicationContextAware,
+        ApplicationEventPublisherAware, BeanClassLoaderAware, BeanFactoryAware,
+        BeanNameAware, LoadTimeWeaverAware, MessageSourceAware,
+        NotificationPublisherAware, ResourceLoaderAware
+{
+    @Override
+    public void setResourceLoader(ResourceLoader arg0) {
+        // TODO Auto-generated method stub
+    }
+ 
+    @Override
+    public void setNotificationPublisher(NotificationPublisher arg0) {
+        // TODO Auto-generated method stub
+ 
+    }
+ 
+    @Override
+    public void setMessageSource(MessageSource arg0) {
+        // TODO Auto-generated method stub
+    }
+ 
+    @Override
+    public void setLoadTimeWeaver(LoadTimeWeaver arg0) {
+        // TODO Auto-generated method stub
+    }
+ 
+    @Override
+    public void setBeanName(String arg0) {
+        // TODO Auto-generated method stub
+    }
+ 
+    @Override
+    public void setBeanFactory(BeanFactory arg0) throws BeansException {
+        // TODO Auto-generated method stub
+    }
+ 
+    @Override
+    public void setBeanClassLoader(ClassLoader arg0) {
+        // TODO Auto-generated method stub
+    }
+ 
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher arg0) {
+        // TODO Auto-generated method stub
+    }
+ 
+    @Override
+    public void setApplicationContext(ApplicationContext arg0)
+            throws BeansException {
+        // TODO Auto-generated method stub
+    }
+}
+```
+
 #### `InitializingBean`和`DisposableBean`回调接口
 
 `org.springframeword.beans.factory.InitalizingBean`接口允许容器将Bean所有必须的属性设置完毕后进行初始化工作。
@@ -133,3 +190,40 @@ public class DemoBean implements InitializingBean, DisposableBean
 }
 ```
 
+#### xml配置文件自定义`init()`和`destroy()`方法
+
+自定义`init()`和`destroy()`有两种类型的作用域：全局和单个Bean，具体例子如下：
+
+```xml
+<beans>
+	 <bean id="demoBean" class="com.DemoBean"
+                    init-method="customInit"
+                    destroy-method="customDestroy"></bean>
+</beans>
+```
+
+```xml
+<beans default-init-method="customInit" default-destroy-method="customDestroy">  
+        <bean id="demoBean" class="com.DemoBean"></bean>
+</beans>
+```
+
+#### `@PostConstruct`和`@PreDestroy`注解
+
+Spring2.5 以上支持注解的方式增加生命周期调用的方法。
+
+- `@PostConstruct` annotated method will be invoked after the bean has been constructed using default constructor and just before it’s instance is returned to requesting object.
+- `@PreDestroy` annotated method is called just before the bean is about be destroyed inside bean container.
+
+### 完整的Bean生命周期回调函数
+
+从Bean实例化开始到Bean被销毁，其中经过了很多的关键点，每个关键点都设计特定的方法调用，可以将这些方法大致划分为4类：
+
+- Bean自身的方法：构造函数，Setter，配置的`init-method`和`destroy-method`。
+- Bean级生命周期接口方法：`*Aware`系列接口。
+- 容器级生命周期接口方法：`InstantiationAwareBeanPostProcessor`和`BeanPostProcessor`，一般称其实现类为后处理器，后处理器一般独立于Bean实现，实现类以容器附加装置的形式注册到Spring容器中。
+- 工厂后处理接口方法：`AspectJWeavingEnabler`、`CustomAutowireConfigure`、`ConfigurationClassPostProcessor`等方法。工厂方法也是容器级别的，在应用上下文装配配置文件后立即调用。
+
+## ApplicationContext中Bean的生命周期
+
+`ApplicationContext`能够智能识别配置文件中定义的处理器并自动插入。
