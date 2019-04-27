@@ -181,11 +181,54 @@ public class GenericGrovvyApplicationContextTest{
 }
 ```
 
-
-
 ## WebApplicationContext简介
 
+`WebApplicationContext`是专门为Web应用准备的，它允许从相对于web根目录的路径中装载配置文件完成初始化工作。从`WebApplicationCOntext`中可以获得`ServletContext`的引用，这个包房费Web应用上下文对象将作为属性防止在`ServletContext`中，以便Web应用环境可以访问Spring应用上下文。Spring提供了一个工具类`WebApplicationContextUtils`，通过该类的`getWebApplication(ServletContext sc)`方法，可以从`WebApplicationContext`获取`WebApplication`实例。
 
+在非Web环境下，Bean只有sington和prototype两种作用域。`WebApplicationContext`为Bean添加了三个新的作用域：request、session和global session。
 
+```java
+// WebApplicationContext.java
+public interface WebApplicationContext extends ApplicationContext {
+    String ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE = WebApplicationContext.class.getName() + ".ROOT";
+    String SCOPE_REQUEST = "request";
+    String SCOPE_SESSION = "session";
+    String SCOPE_APPLICATION = "application";
+    String SERVLET_CONTEXT_BEAN_NAME = "servletContext";
+    String CONTEXT_PARAMETERS_BEAN_NAME = "contextParameters";
+    String CONTEXT_ATTRIBUTES_BEAN_NAME = "contextAttributes";
 
+    @Nullable
+    ServletContext getServletContext();
+}
+```
+
+上述代码中定义了一个常量：`ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE`，在上下文启动时`WebApplicationContext`实例以此为key放置在`ServletContext`的属性列表中，前面提到`WebApplicationContextUtils`工具类拥有从Web容器获取`WebApplicationContext`的方法`getWebApplicationContext(ServletContext sc)`。
+
+```java
+// WebApplicationContextUtils.getWebApplicationContext(ServletContext sc)
+public static WebApplicationContext getWebApplicationContext(ServletContext sc) {
+    return getWebApplicationContext(sc, WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+}
+```
+
+上述方法便是`WebApplicationContextUtils`中获取`WebApplicationContext`的内部实现。
+
+这样Spring的Web应用上下文和Web容器的上下文应用就实现了互相访问，二者实现了融合。
+
+![](./image/WebApplicationContextAndServletContext.png)
+
+`ConfigurableWebApplicationContext`继承于`WebApplicationContext`，允许通过配置的方法实例化`WebApplicationContext`，同时定义了两个重要的方法。
+
+```java
+void setServletContext(@Nullable ServletContext var1);
+void setConfigLocations(String... var1);
+```
+
+- `setServletContext`为Spring设置Web应用上下文，以便二者整合。
+- `setConfigLocations`设置Spring配置文件地址。
+
+### WebApplicationContext类体系结构
+
+![WebApplicationContextImplementsStructure](./image/WebApplicationContextImplementsStructure.png)
 
